@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Web de Gestão - Cis Curumim</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- jsPDF & Chart.js Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#1e40af',
+                            600: '#172554',
+                            700: '#172554',
+                            900: '#172554'
+                        },
+                        orangeBrand: {
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="font-sans antialiased text-slate-800 bg-slate-50 min-h-screen flex flex-col selection:bg-blue-950 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- Tela de Login -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all duration-300">
+            <div class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 p-8 text-center text-white relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-blue-800/10 rounded-full blur-2xl"></div>
+                <div class="inline-flex p-4 bg-white/10 rounded-2xl border border-white/20 mb-3 shadow-inner">
+                    <i class="fa-solid fa-layer-group text-3xl text-blue-400"></i>
+                </div>
+                <h1 class="text-2xl font-black tracking-wider uppercase">INTEGRA GESTÃO</h1>
+                <p class="text-xs text-blue-200 mt-1 font-medium">Aplicação Web de Gestão Institucional - Cis Curumim</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="p-8 space-y-5">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">E-mail Institucional</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                        <input type="email" id="login-email" required value="admin@ciscurumim.org.br" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Senha de Acesso</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                        <input type="password" id="login-password" required value="123456" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <button type="submit" id="login-submit-btn" class="w-full py-3.5 bg-blue-950 hover:bg-blue-900 active:scale-[0.98] text-white rounded-xl text-xs font-bold tracking-wide shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-right-to-bracket"></i> ACESSAR SISTEMA
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-wrapper" class="min-h-screen w-full flex flex-col md:flex-row">
+
+        <!-- Mobile Header Bar -->
+        <div class="md:hidden bg-blue-950 text-white p-4 flex items-center justify-between border-b border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-950 rounded-lg flex items-center justify-center text-white">
+                    <i class="fa-solid fa-layer-group text-sm"></i>
+                </div>
+                <span class="font-black text-base tracking-tight">Integra Gestão</span>
+            </div>
+            <button onclick="toggleMobileMenu()" class="p-2 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar-menu" class="hidden md:flex w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 flex-col justify-between select-none z-40 transition-all">
+            <div>
+                <!-- Brand Header -->
+                <div class="p-6 flex items-center gap-3 border-b border-slate-100">
+                    <div class="w-9 h-9 bg-gradient-to-tr from-blue-700 to-blue-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-600/30">
+                        <i class="fa-solid fa-layer-group text-base"></i>
+                    </div>
+                    <div>
+                        <span class="font-black text-lg text-slate-900 tracking-tight leading-none block">Integra Gestão</span>
+                        <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Cis Curumim</span>
+                    </div>
+                </div>
+
+                <!-- Categorized Menu -->
+                <div class="px-3 pt-1 pb-1">
+                    <p class="text-[9px] font-bold uppercase tracking-widest text-blue-900/70">Aplicação Web de Gestão</p>
+                </div>
+                <nav class="px-3 py-4 space-y-6">
+                    <!-- Monitorização -->
+                    <div>
+                        <p class="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Monitorização do Sistema</p>
+                        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-100">
+                            <i class="fa-solid fa-chart-pie w-4 text-center"></i> Dashboard
+                        </button>
+                    </div>
+
+                    <!-- Capital Humano -->
+                    <div>
+                        <p class="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Capital Humano</p>
+                        <div class="space-y-1">
+                            <button onclick="switchTab('funcionarios')" id="nav-funcionarios" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-100">
+                                <i class="fa-solid fa-id-card w-4 text-center"></i> Funcionários
+                            </button>
+                            <button onclick="switchTab('alunos')" id="nav-alunos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-white bg-blue-950 shadow-sm">
+                                <i class="fa-solid fa-user-graduate w-4 text-center"></i> Alunos
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Operacional -->
+                    <div>
+                        <p class="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Operacional</p>
+                        <div class="space-y-1">
+                            <button onclick="switchTab('oficinas')" id="nav-oficinas" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-100">
+                                <i class="fa-solid fa-palette w-4 text-center"></i> Oficinas
+                            </button>
+                        </div>
+                    </div>
+
+                </nav>
+            </div>
+
+            <div class="p-4 border-t border-slate-100">
+                <button onclick="handleLogout()" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 rounded-xl text-xs font-bold flex items-center justify-start gap-2.5 transition">
+                    <i class="fa-solid fa-power-off text-slate-400 group-hover:text-red-500"></i> Terminar Sessão
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Work Area -->
+        <!-- Sistema Web: área principal da aplicação -->
+        <div class="flex-1 flex flex-col min-w-0 bg-slate-50/70 overflow-y-auto">
+            
+            <header class="px-6 md:px-8 py-5 bg-white border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-30 shadow-xs">
+                <div class="flex items-center gap-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <h1 id="page-title" class="text-base font-black text-slate-900 tracking-wider uppercase">ALUNOS</h1>
+                        <span class="px-2.5 py-1 bg-blue-50 text-blue-900 rounded-full text-[9px] font-extrabold uppercase tracking-wider border border-blue-100">Sistema Web</span>
+                    </div>
+                    <span id="current-date-badge" class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-extrabold uppercase tracking-wider border border-slate-200">
+                        HOJE
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                </div>
+            </header>
+
+            <main class="p-4 md:p-8 max-w-7xl w-full mx-auto space-y-8">
+
+                <!-- 2. DASHBOARD VIEW -->
+                <section id="view-dashboard" class="view-panel hidden space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total de Alunos</p>
+                                <h3 id="dash-alunos-count" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                                <span class="text-[10px] text-emerald-600 font-bold">Alunos cadastrados</span>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-user-graduate"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Menores de Idade</p>
+                                <h3 id="dash-menores-count" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                                <span class="text-[10px] text-slate-400 font-medium">Acompanhamento de responsáveis</span>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-children"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Oficinas</p>
+                                <h3 id="dash-oficinas-count" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                                <span class="text-[10px] text-slate-400 font-medium">Atividades disponíveis</span>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Responsáveis</p>
+                                <h3 id="dash-responsaveis-count" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                                <span class="text-[10px] text-slate-400 font-medium">Responsáveis cadastrados</span>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-5">
+                            <div>
+                                <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">Painel da Aplicação Web</h3>
+                                <p class="text-xs text-slate-400 mt-1">Visão geral dos cadastros e atividades dos alunos no sistema web.</p>
+                            </div>
+                            <i class="fa-solid fa-user-graduate text-blue-900 text-xl"></i>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Alunos por oficina</p>
+                                <p id="dash-oficinas-resumo" class="text-xs font-semibold text-slate-700 mt-2">Nenhum dado disponível.</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Cadastros com responsável</p>
+                                <p id="dash-responsaveis-resumo" class="text-xs font-semibold text-slate-700 mt-2">0 alunos</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Faixa etária</p>
+                                <p id="dash-faixa-etaria" class="text-xs font-semibold text-slate-700 mt-2">Nenhum aluno cadastrado.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. FUNCIONÁRIOS VIEW -->
+                <section id="view-funcionarios" class="view-panel hidden space-y-6">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h2 class="font-bold text-slate-800 text-sm">Gestão de Funcionários & Equipe</h2>
+                                <span class="hidden"></span>
+                                <p class="text-xs text-slate-400 font-medium">Controle completo de contratos, documentos e perfil de colaboradores</p>
+                            </div>
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <input type="text" id="search-func" oninput="renderFuncionariosTable()" placeholder="Buscar por nome ou CPF..." class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-900">
+                                <button onclick="openModal('modal-funcionario')" class="px-4 py-2 bg-blue-950 hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-md shadow-blue-600/20">
+                                    + Novo Cadastramento
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 text-slate-400 text-[10px] font-extrabold uppercase tracking-wider border-b border-slate-100">
+                                    <tr>
+                                        <th class="py-3 px-4">Nome do Colaborador</th>
+                                        <th class="py-3 px-4">CPF / Contato</th>
+                                        <th class="py-3 px-4">Cargo / Função</th>
+                                        <th class="py-3 px-4">Regime</th>
+                                        <th class="py-3 px-4 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-func-body" class="divide-y divide-slate-100 text-xs text-slate-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. ALUNOS VIEW -->
+                <section id="view-alunos" class="view-panel space-y-6">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h2 class="font-bold text-slate-800 text-sm">Gestão de Alunos</h2>
+                                <p class="text-xs text-slate-400 font-medium">Módulo da aplicação web para gestão das crianças e jovens matriculados nos projetos</p>
+                            </div>
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <input type="text" id="search-alunos" oninput="renderAlunosTable()" placeholder="Buscar aluno..." class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-900">
+                                <button onclick="openModal('modal-aluno')" class="px-4 py-2 bg-blue-950 hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-md shadow-blue-600/20">
+                                    + Novo Aluno
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 text-slate-400 text-[10px] font-extrabold uppercase tracking-wider border-b border-slate-100">
+                                    <tr>
+                                        <th class="py-3 px-4">Nome do Aluno</th>
+                                        <th class="py-3 px-4">Idade</th>
+                                        <th class="py-3 px-4">Responsável Legal</th>
+                                        <th class="py-3 px-4">Oficina Inscrita</th>
+                                        <th class="py-3 px-4 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-alunos-body" class="divide-y divide-slate-100 text-xs text-slate-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. OFICINAS VIEW -->
+                <section id="view-oficinas" class="view-panel hidden space-y-6">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h2 class="font-bold text-slate-800 text-sm">Gestão de Oficinas & Cursos</h2>
+                                <p class="text-xs text-slate-400 font-medium">Programação de oficinas formativas e ocupacionais</p>
+                            </div>
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <button onclick="openModal('modal-oficina')" class="px-4 py-2 bg-blue-950 hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-md shadow-blue-600/20">
+                                    + Nova Oficina
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 text-slate-400 text-[10px] font-extrabold uppercase tracking-wider border-b border-slate-100">
+                                    <tr>
+                                        <th class="py-3 px-4">Nome da Oficina</th>
+                                        <th class="py-3 px-4">Educador Responsável</th>
+                                        <th class="py-3 px-4">Dia / Horário</th>
+                                        <th class="py-3 px-4 text-center">Vagas</th>
+                                        <th class="py-3 px-4 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-oficinas-body" class="divide-y divide-slate-100 text-xs text-slate-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Funcionario (Formulário Completo em 4 Categorias) -->
+    <div id="modal-funcionario" class="fixed inset-0 bg-blue-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white max-w-4xl w-full rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 my-8 max-h-[90vh] flex flex-col justify-between">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4 flex-shrink-0">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-id-card text-blue-900"></i> Cadastrar Novo Funcionário
+                    </h3>
+                    <p class="text-xs text-slate-400">Preencha todos os campos obrigatórios divididos por categoria</p>
+                </div>
+                <button onclick="closeModal('modal-funcionario')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveFuncionario(event)" class="overflow-y-auto pr-2 space-y-8 flex-1">
+                <!-- Seção 1: Dados Pessoais e Contato -->
+                <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-blue-900 flex items-center gap-2">
+                        <i class="fa-solid fa-user"></i> 1. Dados Pessoais e Contato
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Nome Completo *</label>
+                            <input type="text" id="m-func-nome" required placeholder="Nome social/completo" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Data de Nascimento *</label>
+                            <input type="date" id="m-func-nascimento" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Estado Civil *</label>
+                            <select id="m-func-estado-civil" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                                <option value="">Selecione...</option>
+                                <option value="Solteiro(a)">Solteiro(a)</option>
+                                <option value="Casado(a)">Casado(a)</option>
+                                <option value="Divorciado(a)">Divorciado(a)</option>
+                                <option value="Viuvo(a)">Viúvo(a)</option>
+                                <option value="União Estável">União Estável</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Nome da Mãe *</label>
+                            <input type="text" id="m-func-mae" required placeholder="Nome da mãe" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Nome do Pai</label>
+                            <input type="text" id="m-func-pai" placeholder="Nome do pai" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Endereço Residencial Completo *</label>
+                            <input type="text" id="m-func-endereco" required placeholder="Rua, Nº, Bairro, Cidade - UF" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">CEP *</label>
+                            <input type="text" id="m-func-cep" required placeholder="00000-000" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Telefone de Contato *</label>
+                            <input type="tel" id="m-func-telefone" required placeholder="(00) 00000-0000" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">E-mail *</label>
+                            <input type="email" id="m-func-email" required placeholder="email@exemplo.com" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Documentos Obrigatórios -->
+                <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-blue-900 flex items-center gap-2">
+                        <i class="fa-solid fa-file-contract"></i> 2. Documentos Obrigatórios
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">CPF *</label>
+                            <input type="text" id="m-func-cpf" required placeholder="000.000.000-00" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">RG / Órgão Emissor *</label>
+                            <input type="text" id="m-func-rg" required placeholder="00.000.000-0 SSP/SP" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">PIS / PASEP / Cartão Cidadão *</label>
+                            <input type="text" id="m-func-pis" required placeholder="000.00000.00-0" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">CTPS (Nº ou CPF Digital) *</label>
+                            <input type="text" id="m-func-ctps" required placeholder="Nº da Carteira ou CPF" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Título de Eleitor *</label>
+                            <input type="text" id="m-func-titulo" required placeholder="Nº, Zona e Seção" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Certificado de Reservista</label>
+                            <input type="text" id="m-func-reservista" placeholder="Obrigatório para homens até 45a" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Certidão de Nascimento ou Casamento *</label>
+                            <input type="text" id="m-func-certidao" required placeholder="Detalhes ou nº do Registro Civil" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Informações Contratuais e de Trabalho -->
+                <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-blue-900 flex items-center gap-2">
+                        <i class="fa-solid fa-briefcase"></i> 3. Informações Contratuais e de Trabalho
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Cargo / Função *</label>
+                            <input type="text" id="m-func-cargo" required placeholder="Ex: Educador Social TI" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Regime Contratual *</label>
+                            <select id="m-func-contrato" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                                <option value="CLT">CLT</option>
+                                <option value="PJ">PJ</option>
+                                <option value="Estágio">Estágio</option>
+                                <option value="Voluntário">Voluntário</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Data de Admissão *</label>
+                            <input type="date" id="m-func-admissao" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Salário Inicial (R$) *</label>
+                            <input type="number" step="0.01" id="m-func-salario" required placeholder="0.00" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Forma de Pagamento *</label>
+                            <select id="m-func-pagamento" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                                <option value="Pix">Pix</option>
+                                <option value="Conta Corrente">Conta Corrente</option>
+                                <option value="Conta Salário">Conta Salário</option>
+                                <option value="Transferência TED">Transferência TED</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Local de Trabalho *</label>
+                            <input type="text" id="m-func-local" required placeholder="Presencial (Endereço) ou Home Office" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Jornada de Trabalho *</label>
+                            <input type="text" id="m-func-jornada" required placeholder="Ex: 08:00 às 17:00 (Intervalo das 12:00 às 13:00)" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 4: Benefícios e Outros Dados -->
+                <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-blue-900 flex items-center gap-2">
+                        <i class="fa-solid fa-coins"></i> 4. Benefícios e Outros Dados
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Dados Bancários & Pix *</label>
+                            <input type="text" id="m-func-banco" required placeholder="Ex: Banco Itaú, Ag: 1234, C/C: 56789-0, Pix: CPF" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Dependentes</label>
+                            <input type="text" id="m-func-dependentes" placeholder="Ex: 1 filho (CPF: 000.000.000-00)" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Exame Médico Admissional (ASO) *</label>
+                            <input type="text" id="m-func-aso" required placeholder="Ex: Apto - ASO realizado em 10/08/2026" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 flex-shrink-0">
+                    <button type="button" onclick="closeModal('modal-funcionario')" class="px-5 py-2.5 bg-slate-100 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-950 text-white rounded-xl text-xs font-bold hover:bg-blue-900 shadow-lg shadow-blue-600/30 transition">Salvar Cadastro Completo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Perfil do Funcionário -->
+    <div id="modal-perfil-funcionario" class="fixed inset-0 bg-blue-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white max-w-4xl w-full rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 my-8 max-h-[90vh] flex flex-col justify-between">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 gap-4 flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-gradient-to-tr from-blue-700 to-blue-500 text-white rounded-2xl flex items-center justify-center text-xl font-bold shadow-md shadow-blue-500/20">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="p-func-nome" class="font-black text-slate-900 text-lg">---</h3>
+                            <span id="p-func-contrato-badge" class="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-[10px] font-extrabold uppercase">CLT</span>
+                        </div>
+                        <p id="p-func-cargo" class="text-xs text-slate-500 font-semibold">---</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button id="p-func-btn-pdf" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf text-red-600"></i> Ficha PDF
+                    </button>
+                    <button onclick="closeModal('modal-perfil-funcionario')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-y-auto pr-2 space-y-6 flex-1 text-xs">
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[11px] border-b border-slate-200 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-user text-blue-900"></i> Dados Pessoais e Contato
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-slate-700">
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Data de Nascimento</span><span id="p-func-nascimento" class="font-bold text-slate-900">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Estado Civil</span><span id="p-func-estado-civil" class="font-bold text-slate-900">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Telefone</span><span id="p-func-telefone" class="font-bold text-slate-900">---</span></div>
+                        <div class="md:col-span-2"><span class="text-[10px] font-bold text-slate-400 uppercase block">E-mail</span><span id="p-func-email" class="font-bold text-slate-900">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">CEP</span><span id="p-func-cep" class="font-bold text-slate-900">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Nome da Mãe</span><span id="p-func-mae" class="font-medium text-slate-800">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Nome do Pai</span><span id="p-func-pai" class="font-medium text-slate-800">---</span></div>
+                        <div class="md:col-span-3"><span class="text-[10px] font-bold text-slate-400 uppercase block">Endereço Residencial</span><span id="p-func-endereco" class="font-medium text-slate-800">---</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[11px] border-b border-slate-200 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-file-contract text-blue-900"></i> Documentos Obrigatórios
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-slate-700">
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">CPF</span><span id="p-func-cpf" class="font-mono font-bold text-slate-900">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">RG</span><span id="p-func-rg" class="font-mono font-bold text-slate-900">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">PIS / PASEP</span><span id="p-func-pis" class="font-mono font-medium text-slate-800">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">CTPS</span><span id="p-func-ctps" class="font-medium text-slate-800">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Título de Eleitor</span><span id="p-func-titulo" class="font-medium text-slate-800">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Reservista</span><span id="p-func-reservista" class="font-medium text-slate-800">---</span></div>
+                        <div class="md:col-span-3"><span class="text-[10px] font-bold text-slate-400 uppercase block">Certidão Civil</span><span id="p-func-certidao" class="font-medium text-slate-800">---</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[11px] border-b border-slate-200 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-briefcase text-blue-900"></i> Informações Contratuais e de Trabalho
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-slate-700">
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Cargo / Função</span><span id="p-func-cargo-info" class="font-bold text-slate-900">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Data de Admissão</span><span id="p-func-admissao" class="font-bold text-slate-900">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Salário Inicial</span><span id="p-func-salario" class="font-bold text-emerald-600">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Forma de Pagamento</span><span id="p-func-pagamento" class="font-medium text-slate-800">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Local de Trabalho</span><span id="p-func-local" class="font-medium text-slate-800">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Regime</span><span id="p-func-regime" class="font-bold text-blue-900">---</span></div>
+                        <div class="md:col-span-3"><span class="text-[10px] font-bold text-slate-400 uppercase block">Jornada de Trabalho</span><span id="p-func-jornada" class="font-medium text-slate-800">---</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[11px] border-b border-slate-200 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-coins text-blue-900"></i> Benefícios e Outros Dados
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
+                        <div class="md:col-span-2"><span class="text-[10px] font-bold text-slate-400 uppercase block">Dados Bancários & Chave Pix</span><span id="p-func-banco" class="font-medium text-slate-800">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Comprovante de Dependentes</span><span id="p-func-dependentes" class="font-medium text-slate-800">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Exame Médico Admissional (ASO)</span><span id="p-func-aso" class="font-medium text-slate-800">---</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-3 border-t border-slate-100 flex-shrink-0">
+                <button type="button" onclick="closeModal('modal-perfil-funcionario')" class="px-6 py-2 bg-blue-950 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition">Fechar Perfil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Aluno -->
+    <div id="modal-aluno" class="fixed inset-0 bg-blue-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-4 my-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-base">Matricular Novo Aluno</h3>
+                <button onclick="closeModal('modal-aluno')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveAluno(event)" class="space-y-3 text-xs">
+
+                <div class="pt-1">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[10px] mb-2">1. Dados Pessoais do Aluno</h4>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Nome Completo do Aluno *</label>
+                    <input type="text" id="m-alu-nome" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Idade *</label>
+                        <input type="number" id="m-alu-idade" required min="1" max="21" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Data de Nascimento</label>
+                        <input type="date" id="m-alu-nascimento" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Gênero</label>
+                        <select id="m-alu-genero" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                            <option value="">Selecione...</option>
+                            <option value="Feminino">Feminino</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Outro">Outro</option>
+                            <option value="Prefiro não informar">Prefiro não informar</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Nacionalidade</label>
+                        <input type="text" id="m-alu-nacionalidade" placeholder="Ex: Brasileira" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Naturalidade</label>
+                        <input type="text" id="m-alu-naturalidade" placeholder="Cidade / Estado" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">RG</label>
+                        <input type="text" id="m-alu-rg" placeholder="Número do RG" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">CPF</label>
+                        <input type="text" id="m-alu-cpf" placeholder="000.000.000-00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Certidão de Nascimento</label>
+                        <input type="text" id="m-alu-certidao" placeholder="Número / registro" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[10px] mb-2">2. Dados de Contato e Localização</h4>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Endereço Residencial Completo</label>
+                    <input type="text" id="m-alu-endereco" placeholder="Rua, número, bairro, cidade - UF" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Telefone Fixo</label>
+                        <input type="tel" id="m-alu-telefone-fixo" placeholder="(00) 0000-0000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Celular</label>
+                        <input type="tel" id="m-alu-celular" placeholder="(00) 00000-0000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">E-mail Principal</label>
+                    <input type="email" id="m-alu-email" placeholder="email@exemplo.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+
+                <div class="pt-2">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[10px] mb-2">3. Dados dos Responsáveis</h4>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Responsável Legal *</label>
+                    <input type="text" id="m-alu-resp" required placeholder="Nome completo dos pais ou tutores" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Nome dos Pais ou Tutores</label>
+                    <input type="text" id="m-alu-responsaveis" placeholder="Nome completo dos responsáveis" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">RG do Responsável</label>
+                        <input type="text" id="m-alu-resp-rg" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">CPF do Responsável</label>
+                        <input type="text" id="m-alu-resp-cpf" placeholder="000.000.000-00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Profissão do Responsável</label>
+                    <input type="text" id="m-alu-resp-profissao" placeholder="Profissão" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Telefones de Emergência</label>
+                    <input type="text" id="m-alu-emergencia" placeholder="Nome e telefone(s) para contato em emergência" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">E-mail de Cobrança e Avisos Pedagógicos</label>
+                    <input type="email" id="m-alu-email-responsavel" placeholder="email@exemplo.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+
+                <div class="pt-2">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[10px] mb-2">4. Histórico Acadêmico</h4>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Escolaridade Anterior / Último Ano Concluído</label>
+                    <input type="text" id="m-alu-escolaridade" placeholder="Ex: 5º ano do Ensino Fundamental" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Histórico Escolar / Declaração de Transferência</label>
+                    <input type="text" id="m-alu-historico" placeholder="Informações ou referência do documento" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Certificado de Conclusão</label>
+                    <input type="text" id="m-alu-certificado" placeholder="Informações ou referência do certificado" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+
+                <div class="pt-2">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[10px] mb-2">5. Informações Médicas e de Saúde</h4>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Alergias a Medicamentos ou Alimentos</label>
+                    <input type="text" id="m-alu-alergias" placeholder="Informe alergias conhecidas" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Tipo Sanguíneo</label>
+                        <select id="m-alu-tipo-sangue" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                            <option value="">Selecione...</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="AB">AB</option>
+                            <option value="O">O</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Fator RH</label>
+                        <select id="m-alu-fator-rh" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                            <option value="">Selecione...</option>
+                            <option value="Positivo">Positivo (+)</option>
+                            <option value="Negativo">Negativo (-)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Restrições Médicas ou Deficiências Físicas/Cognitivas</label>
+                    <input type="text" id="m-alu-restricoes" placeholder="Informações relevantes para atendimento" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Contato do Médico</label>
+                        <input type="text" id="m-alu-medico" placeholder="Nome e telefone" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Plano de Saúde</label>
+                        <input type="text" id="m-alu-plano" placeholder="Nome do plano" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <h4 class="font-black text-blue-900 uppercase tracking-wider text-[10px] mb-2">6. Dados Financeiros</h4>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Nome do Responsável Financeiro</label>
+                    <input type="text" id="m-alu-resp-financeiro" placeholder="Nome completo" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">CPF/CNPJ</label>
+                        <input type="text" id="m-alu-fin-cpf-cnpj" placeholder="CPF ou CNPJ" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Forma de Pagamento</label>
+                        <select id="m-alu-forma-pagamento" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                            <option value="">Selecione...</option>
+                            <option value="Pix">Pix</option>
+                            <option value="Boleto">Boleto</option>
+                            <option value="Cartão">Cartão</option>
+                            <option value="Transferência">Transferência</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Dados Bancários</label>
+                    <input type="text" id="m-alu-dados-bancarios" placeholder="Banco, agência, conta ou outras informações" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Oficina Inicial *</label>
+                    <input type="text" id="m-alu-oficina" required placeholder="Ex: Informática Básica" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-aluno')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-semibold">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-950 text-white rounded-xl font-bold hover:bg-blue-900">Efetuar Matrícula</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Oficina -->
+    <div id="modal-oficina" class="fixed inset-0 bg-blue-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-base">Cadastrar Nova Oficina</h3>
+                <button onclick="closeModal('modal-oficina')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveOficina(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Nome da Oficina *</label>
+                    <input type="text" id="m-ofi-nome" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Educador Responsável *</label>
+                    <input type="text" id="m-ofi-edu" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Horário / Dias *</label>
+                        <input type="text" id="m-ofi-horario" required placeholder="Ex: Seg/Qua 14:00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-500 mb-1">Nº Vagas *</label>
+                        <input type="number" id="m-ofi-vagas" required min="1" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-oficina')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-semibold">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-950 text-white rounded-xl font-bold hover:bg-blue-900">Salvar Oficina</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Dialog Modal -->
+    <div id="modal-confirm" class="fixed inset-0 bg-blue-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="font-bold text-slate-900 text-base">Confirmar Exclusão</h3>
+            <p class="text-xs text-slate-500">Tem certeza que deseja remover este item? Esta ação não pode ser desfeita.</p>
+            <div class="flex justify-center gap-3 pt-2">
+                <button onclick="closeModal('modal-confirm')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold">Cancelar</button>
+                <button onclick="executeDelete()" class="px-5 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 shadow-lg shadow-red-600/30">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database Store Initializer
+        var db = {
+            funcionarios: [
+                { 
+                    id: 1, 
+                    nome: "Carlos Eduardo Silva", 
+                    nascimento: "1992-04-12",
+                    estadoCivil: "Casado(a)",
+                    mae: "Maria das Graças Silva",
+                    pai: "José Eduardo Silva",
+                    endereco: "Rua das Flores, 123, Centro",
+                    cep: "18200-000",
+                    telefone: "(15) 99876-5432",
+                    email: "carlos.silva@ciscurumim.org.br",
+                    cpf: "123.456.789-00",
+                    rg: "12.345.678-9 SSP/SP",
+                    pis: "123.45678.90-1",
+                    ctps: "CPF: 123.456.789-00",
+                    titulo: "1234 5678 9012 - Z: 012 S: 034",
+                    reservista: "12.345678.9",
+                    certidao: "Casamento Livro A-12 Fls 45",
+                    cargo: "Educador Social TI", 
+                    contrato: "CLT",
+                    admissao: "2024-02-01",
+                    salario: 3500.00,
+                    pagamento: "Pix",
+                    local: "Presencial - Unidade Sede",
+                    jornada: "08:00 às 17:00 (Intervalo: 12:00 às 13:00)",
+                    banco: "Banco do Brasil - Ag: 1234-5 | C/C: 56789-0 | Pix: carlos@cis.org",
+                    dependentes: "1 Filho (CPF: 987.654.321-00)",
+                    aso: "Apto - Realizado em 25/01/2024"
+                },
+                { 
+                    id: 2, 
+                    nome: "Mariana Souza", 
+                    nascimento: "1988-09-25",
+                    estadoCivil: "Solteiro(a)",
+                    mae: "Ana Paula Souza",
+                    pai: "Roberto Souza",
+                    endereco: "Av. Brasil, 450, Jd. Paulista",
+                    cep: "18200-110",
+                    telefone: "(15) 98112-3344",
+                    email: "mariana.souza@ciscurumim.org.br",
+                    cpf: "234.567.890-11",
+                    rg: "23.456.789-0 SSP/SP",
+                    pis: "234.56789.01-2",
+                    ctps: "CPF: 234.567.890-11",
+                    titulo: "2345 6789 0123 - Z: 012 S: 040",
+                    reservista: "Isenta",
+                    certidao: "Nascimento Reg 9876",
+                    cargo: "Assistente Social", 
+                    contrato: "CLT",
+                    admissao: "2023-08-15",
+                    salario: 4200.00,
+                    pagamento: "Conta Salário",
+                    local: "Presencial - Sede",
+                    jornada: "08:00 às 17:00 (Intervalo: 12:00 às 13:00)",
+                    banco: "Itaú - Ag: 4321 | C/S: 98765-1",
+                    dependentes: "Nenhum",
+                    aso: "Apto - Realizado em 10/08/2023"
+                }
+            ],
+            alunos: [
+                { id: 101, nome: "Lucas Andrade", idade: 12, responsavel: "Ana Maria Andrade", oficina: "Informática Básica" },
+                { id: 102, nome: "Beatriz Oliveira", idade: 10, responsavel: "Carlos Oliveira", oficina: "Artes e Música" },
+                { id: 103, nome: "Gabriel Santos", idade: 14, responsavel: "Patricia Santos", oficina: "Informática Básica" }
+            ],
+            oficinas: [
+                { id: 1, nome: "Informática Básica", educador: "Carlos Eduardo", horario: "Seg/Qua 14:00", vagas: 15 },
+                { id: 2, nome: "Artes e Música", educador: "Fernanda Lima", horario: "Ter/Qui 09:00", vagas: 12 }
+            ],
+        };
+
+        var deleteTarget = null;
+
+        function showToast(message, type = "success") {
+            var container = document.getElementById('toast-container');
+            var toast = document.createElement('div');
+            var bgClass = type === 'success' ? 'bg-blue-950 border-emerald-500 text-white' : 'bg-blue-950 border-blue-500 text-white';
+            var iconClass = type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-circle-info text-blue-400';
+            
+            toast.className = `p-4 rounded-2xl shadow-2xl border-l-4 flex items-center gap-3 text-xs font-medium pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${iconClass} text-base"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(function() {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(function() {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 3500);
+        }
+
+        function openModal(id) {
+            var modal = document.getElementById(id);
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            var modal = document.getElementById(id);
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            var sidebar = document.getElementById('sidebar-menu');
+            sidebar.classList.toggle('hidden');
+        }
+
+        function switchTab(tabId) {
+            var panels = document.querySelectorAll('.view-panel');
+            for (var i = 0; i < panels.length; i++) {
+                panels[i].classList.add('hidden');
+            }
+
+            var navBtns = document.querySelectorAll('.nav-btn');
+            for (var j = 0; j < navBtns.length; j++) {
+                navBtns[j].className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-100';
+            }
+
+            var targetPanel = document.getElementById('view-' + tabId);
+            if (targetPanel) targetPanel.classList.remove('hidden');
+
+            var activeNav = document.getElementById('nav-' + tabId);
+            if (activeNav) activeNav.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-white bg-blue-950 shadow-sm';
+
+            document.getElementById('page-title').innerText = tabId.toUpperCase();
+
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar-menu').classList.add('hidden');
+            }
+
+            // Refresh view tables
+            if (tabId === 'funcionarios') renderFuncionariosTable();
+            if (tabId === 'alunos') renderAlunosTable();
+            if (tabId === 'oficinas') renderOficinasTable();
+            if (tabId === 'dashboard') {
+                updateDashboard();
+                }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            document.getElementById('login-screen').classList.add('hidden');
+            showToast("Sessão iniciada com sucesso! Bem-vindo.", "success");
+            updateDashboard();
+        }
+
+        function handleLogout() {
+            document.getElementById('login-screen').classList.remove('hidden');
+            showToast("Sessão encerrada com segurança.", "info");
+        }
+
+
+        function renderFuncionariosTable() {
+            var tbody = document.getElementById('table-func-body');
+            var search = (document.getElementById('search-func') ? document.getElementById('search-func').value : '').toLowerCase();
+            var filtered = db.funcionarios.filter(function(f) {
+                return f.nome.toLowerCase().includes(search) || (f.cpf && f.cpf.includes(search)) || f.cargo.toLowerCase().includes(search);
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Nenhum funcionário encontrado.</td></tr>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < filtered.length; i++) {
+                var f = filtered[i];
+                html += '<tr class="hover:bg-slate-50 transition">' +
+                    '<td class="py-3 px-4 font-bold text-slate-900">' +
+                        '<button onclick="openPerfilFuncionario(' + f.id + ')" class="text-left hover:text-blue-900 transition flex items-center gap-2 group">' +
+                            '<i class="fa-solid fa-circle-user text-slate-400 group-hover:text-blue-900 text-sm"></i>' +
+                            '<span>' + f.nome + '</span>' +
+                        '</button>' +
+                    '</td>' +
+                    '<td class="py-3 px-4 font-mono text-slate-600">' + (f.cpf || 'N/A') + '<p class="text-[10px] font-sans text-slate-400">' + (f.telefone || '') + '</p></td>' +
+                    '<td class="py-3 px-4 font-medium text-slate-800">' + f.cargo + '</td>' +
+                    '<td class="py-3 px-4"><span class="px-2.5 py-0.5 bg-blue-50 text-blue-900 font-bold rounded-full text-[10px] border border-blue-300">' + f.contrato + '</span></td>' +
+                    '<td class="py-3 px-4 text-right flex justify-end gap-2">' +
+                        '<button onclick="openPerfilFuncionario(' + f.id + ')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold border border-slate-200 transition flex items-center gap-1"><i class="fa-solid fa-eye text-blue-900"></i> Ver Perfil</button>' +
+                        '<button onclick="confirmDelete(\'funcionarios\', ' + f.id + ')" class="p-1 text-slate-400 hover:text-red-600 transition"><i class="fa-solid fa-trash-can"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+
+        function renderAlunosTable() {
+            var tbody = document.getElementById('table-alunos-body');
+            var search = (document.getElementById('search-alunos') ? document.getElementById('search-alunos').value : '').toLowerCase();
+            var filtered = db.alunos.filter(function(al) { return al.nome.toLowerCase().includes(search); });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Nenhum aluno cadastrado.</td></tr>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < filtered.length; i++) {
+                var al = filtered[i];
+                html += '<tr class="hover:bg-slate-50 transition">' +
+                    '<td class="py-3 px-4 font-bold text-slate-900">' + al.nome + '</td>' +
+                    '<td class="py-3 px-4 font-medium text-slate-700">' + al.idade + ' anos</td>' +
+                    '<td class="py-3 px-4 font-medium text-slate-600">' + al.responsavel + '</td>' +
+                    '<td class="py-3 px-4"><span class="px-2.5 py-0.5 bg-purple-50 text-purple-700 font-bold rounded-full text-[10px]">' + al.oficina + '</span></td>' +
+                    '<td class="py-3 px-4 text-right">' +
+                        '<button onclick="confirmDelete(\'alunos\', ' + al.id + ')" class="p-1 text-slate-400 hover:text-red-600 transition"><i class="fa-solid fa-trash-can"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function renderOficinasTable() {
+            var tbody = document.getElementById('table-oficinas-body');
+            if (db.oficinas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Nenhuma oficina registrada.</td></tr>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < db.oficinas.length; i++) {
+                var o = db.oficinas[i];
+                html += '<tr class="hover:bg-slate-50 transition">' +
+                    '<td class="py-3 px-4 font-bold text-slate-900">' + o.nome + '</td>' +
+                    '<td class="py-3 px-4 font-medium text-slate-700">' + o.educador + '</td>' +
+                    '<td class="py-3 px-4 font-medium text-slate-600">' + o.horario + '</td>' +
+                    '<td class="py-3 px-4 text-center font-bold text-blue-900">' + o.vagas + '</td>' +
+                    '<td class="py-3 px-4 text-right">' +
+                        '<button onclick="confirmDelete(\'oficinas\', ' + o.id + ')" class="p-1 text-slate-400 hover:text-red-600 transition"><i class="fa-solid fa-trash-can"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+
+
+
+        function saveFuncionario(e) {
+            e.preventDefault();
+            var newFunc = {
+                id: Date.now(),
+                nome: document.getElementById('m-func-nome').value,
+                nascimento: document.getElementById('m-func-nascimento').value,
+                estadoCivil: document.getElementById('m-func-estado-civil').value,
+                mae: document.getElementById('m-func-mae').value,
+                pai: document.getElementById('m-func-pai').value,
+                endereco: document.getElementById('m-func-endereco').value,
+                cep: document.getElementById('m-func-cep').value,
+                telefone: document.getElementById('m-func-telefone').value,
+                email: document.getElementById('m-func-email').value,
+                cpf: document.getElementById('m-func-cpf').value,
+                rg: document.getElementById('m-func-rg').value,
+                pis: document.getElementById('m-func-pis').value,
+                ctps: document.getElementById('m-func-ctps').value,
+                titulo: document.getElementById('m-func-titulo').value,
+                reservista: document.getElementById('m-func-reservista').value,
+                certidao: document.getElementById('m-func-certidao').value,
+                cargo: document.getElementById('m-func-cargo').value,
+                contrato: document.getElementById('m-func-contrato').value,
+                admissao: document.getElementById('m-func-admissao').value,
+                salario: parseFloat(document.getElementById('m-func-salario').value) || 0,
+                pagamento: document.getElementById('m-func-pagamento').value,
+                local: document.getElementById('m-func-local').value,
+                jornada: document.getElementById('m-func-jornada').value,
+                banco: document.getElementById('m-func-banco').value,
+                dependentes: document.getElementById('m-func-dependentes').value,
+                aso: document.getElementById('m-func-aso').value
+            };
+
+            db.funcionarios.unshift(newFunc);
+            e.target.reset();
+            closeModal('modal-funcionario');
+            renderFuncionariosTable();
+            updateDashboard();
+            showToast("Cadastro de funcionário realizado com sucesso!", "success");
+        }
+
+
+        function saveAluno(e) {
+            e.preventDefault();
+            var newAlu = {
+                id: Date.now(),
+                nome: document.getElementById('m-alu-nome').value,
+                idade: parseInt(document.getElementById('m-alu-idade').value) || 0,
+                nascimento: document.getElementById('m-alu-nascimento').value,
+                genero: document.getElementById('m-alu-genero').value,
+                rg: document.getElementById('m-alu-rg').value,
+                cpf: document.getElementById('m-alu-cpf').value,
+                certidao: document.getElementById('m-alu-certidao').value,
+                nacionalidade: document.getElementById('m-alu-nacionalidade').value,
+                naturalidade: document.getElementById('m-alu-naturalidade').value,
+                endereco: document.getElementById('m-alu-endereco').value,
+                telefoneFixo: document.getElementById('m-alu-telefone-fixo').value,
+                celular: document.getElementById('m-alu-celular').value,
+                email: document.getElementById('m-alu-email').value,
+                responsavel: document.getElementById('m-alu-resp').value,
+                responsaveis: document.getElementById('m-alu-responsaveis').value,
+                responsavelRg: document.getElementById('m-alu-resp-rg').value,
+                responsavelCpf: document.getElementById('m-alu-resp-cpf').value,
+                responsavelProfissao: document.getElementById('m-alu-resp-profissao').value,
+                emergencia: document.getElementById('m-alu-emergencia').value,
+                emailResponsavel: document.getElementById('m-alu-email-responsavel').value,
+                escolaridade: document.getElementById('m-alu-escolaridade').value,
+                historico: document.getElementById('m-alu-historico').value,
+                certificado: document.getElementById('m-alu-certificado').value,
+                alergias: document.getElementById('m-alu-alergias').value,
+                tipoSangue: document.getElementById('m-alu-tipo-sangue').value,
+                fatorRh: document.getElementById('m-alu-fator-rh').value,
+                restricoes: document.getElementById('m-alu-restricoes').value,
+                medico: document.getElementById('m-alu-medico').value,
+                planoSaude: document.getElementById('m-alu-plano').value,
+                responsavelFinanceiro: document.getElementById('m-alu-resp-financeiro').value,
+                financeiroCpfCnpj: document.getElementById('m-alu-fin-cpf-cnpj').value,
+                formaPagamento: document.getElementById('m-alu-forma-pagamento').value,
+                dadosBancarios: document.getElementById('m-alu-dados-bancarios').value,
+                oficina: document.getElementById('m-alu-oficina').value
+            };
+            db.alunos.unshift(newAlu);
+            e.target.reset();
+            closeModal('modal-aluno');
+            renderAlunosTable();
+            updateDashboard();
+            showToast("Aluno matriculado com sucesso!", "success");
+        }
+
+        function saveOficina(e) {
+            e.preventDefault();
+            var newOfi = {
+                id: Date.now(),
+                nome: document.getElementById('m-ofi-nome').value,
+                educador: document.getElementById('m-ofi-edu').value,
+                horario: document.getElementById('m-ofi-horario').value,
+                vagas: parseInt(document.getElementById('m-ofi-vagas').value) || 0
+            };
+            db.oficinas.unshift(newOfi);
+            e.target.reset();
+            closeModal('modal-oficina');
+            renderOficinasTable();
+            showToast("Oficina cadastrada com sucesso!", "success");
+        }
+
+
+
+        function openPerfilFuncionario(id) {
+            var f = db.funcionarios.find(function(item) { return item.id === id; });
+            if (!f) return;
+
+            document.getElementById('p-func-nome').innerText = f.nome;
+            document.getElementById('p-func-cargo').innerText = f.cargo;
+            document.getElementById('p-func-contrato-badge').innerText = f.contrato;
+
+            document.getElementById('p-func-nascimento').innerText = f.nascimento || '---';
+            document.getElementById('p-func-estado-civil').innerText = f.estadoCivil || '---';
+            document.getElementById('p-func-telefone').innerText = f.telefone || '---';
+            document.getElementById('p-func-email').innerText = f.email || '---';
+            document.getElementById('p-func-cep').innerText = f.cep || '---';
+            document.getElementById('p-func-mae').innerText = f.mae || '---';
+            document.getElementById('p-func-pai').innerText = f.pai || '---';
+            document.getElementById('p-func-endereco').innerText = f.endereco || '---';
+
+            document.getElementById('p-func-cpf').innerText = f.cpf || '---';
+            document.getElementById('p-func-rg').innerText = f.rg || '---';
+            document.getElementById('p-func-pis').innerText = f.pis || '---';
+            document.getElementById('p-func-ctps').innerText = f.ctps || '---';
+            document.getElementById('p-func-titulo').innerText = f.titulo || '---';
+            document.getElementById('p-func-reservista').innerText = f.reservista || '---';
+            document.getElementById('p-func-certidao').innerText = f.certidao || '---';
+
+            document.getElementById('p-func-cargo-info').innerText = f.cargo || '---';
+            document.getElementById('p-func-admissao').innerText = f.admissao || '---';
+            document.getElementById('p-func-salario').innerText = f.salario ? 'R$ ' + parseFloat(f.salario).toFixed(2) : '---';
+            document.getElementById('p-func-pagamento').innerText = f.pagamento || '---';
+            document.getElementById('p-func-local').innerText = f.local || '---';
+            document.getElementById('p-func-regime').innerText = f.contrato || '---';
+            document.getElementById('p-func-jornada').innerText = f.jornada || '---';
+
+            document.getElementById('p-func-banco').innerText = f.banco || '---';
+            document.getElementById('p-func-dependentes').innerText = f.dependentes || 'Nenhum informado';
+            document.getElementById('p-func-aso').innerText = f.aso || '---';
+
+            document.getElementById('p-func-btn-pdf').onclick = function() {
+                gerarFichaFuncionarioPDF(f.id);
+            };
+
+            openModal('modal-perfil-funcionario');
+        }
+
+        function confirmDelete(category, id) {
+            deleteTarget = { category: category, id: id };
+            openModal('modal-confirm');
+        }
+
+        function executeDelete() {
+            if (!deleteTarget) return;
+            var cat = deleteTarget.category;
+            var id = deleteTarget.id;
+
+            db[cat] = db[cat].filter(function(item) { return item.id !== id; });
+            closeModal('modal-confirm');
+            showToast("Item removido com sucesso.", "info");
+
+            if (cat === 'funcionarios') renderFuncionariosTable();
+            if (cat === 'alunos') renderAlunosTable();
+            if (cat === 'oficinas') renderOficinasTable();
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            var totalAlunos = db.alunos.length;
+            var menores = db.alunos.filter(function(item) {
+                return Number(item.idade) < 18;
+            }).length;
+
+            var oficinas = {};
+            db.alunos.forEach(function(item) {
+                if (item.oficina) {
+                    oficinas[item.oficina] = (oficinas[item.oficina] || 0) + 1;
+                }
+            });
+
+            var totalOficinas = db.oficinas.length;
+            var responsaveis = db.alunos.filter(function(item) {
+                return item.responsavel && item.responsavel.trim() !== '';
+            }).length;
+
+            document.getElementById('dash-alunos-count').innerText = totalAlunos;
+            document.getElementById('dash-menores-count').innerText = menores;
+            document.getElementById('dash-oficinas-count').innerText = totalOficinas;
+            document.getElementById('dash-responsaveis-count').innerText = responsaveis;
+
+            var resumoOficinas = Object.keys(oficinas).map(function(nome) {
+                return nome + ': ' + oficinas[nome];
+            });
+
+            document.getElementById('dash-oficinas-resumo').innerText =
+                resumoOficinas.length ? resumoOficinas.join(' | ') : 'Nenhum aluno vinculado.';
+
+            document.getElementById('dash-responsaveis-resumo').innerText =
+                responsaveis + ' de ' + totalAlunos + ' alunos';
+
+            if (totalAlunos === 0) {
+                document.getElementById('dash-faixa-etaria').innerText = 'Nenhum aluno cadastrado.';
+            } else {
+                var criancas = db.alunos.filter(function(item) {
+                    return Number(item.idade) <= 12;
+                }).length;
+                var adolescentes = db.alunos.filter(function(item) {
+                    return Number(item.idade) >= 13 && Number(item.idade) < 18;
+                }).length;
+                var maiores = db.alunos.filter(function(item) {
+                    return Number(item.idade) >= 18;
+                }).length;
+
+                document.getElementById('dash-faixa-etaria').innerText =
+                    'Até 12: ' + criancas + ' | 13–17: ' + adolescentes + ' | 18+: ' + maiores;
+            }
+        }
+
+
+
+
+        function gerarFichaFuncionarioPDF(id) {
+            var f = db.funcionarios.find(function(item) { return item.id === id; });
+            if (!f) return;
+
+            var { jsPDF } = window.jspdf;
+            var doc = new jsPDF();
+
+            doc.setFillColor(30, 58, 138);
+            doc.rect(0, 0, 210, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text("FICHA DE CADASTRO DO FUNCIONÁRIO", 105, 16, { align: "center" });
+
+            doc.setTextColor(30, 41, 59);
+            doc.setFontSize(11);
+            doc.text("COLABORADOR: " + f.nome.toUpperCase(), 15, 35);
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.text("Cargo: " + f.cargo + " | Regime: " + f.contrato + " | Data de Admissão: " + (f.admissao || 'N/A'), 15, 42);
+
+            var y = 52;
+            
+            doc.setFont("helvetica", "bold");
+            doc.text("1. DADOS PESSOAIS E CONTATO", 15, y);
+            doc.setFont("helvetica", "normal");
+            y += 6;
+            doc.text("Nascimento: " + (f.nascimento || 'N/A') + " | Estado Civil: " + (f.estadoCivil || 'N/A'), 15, y);
+            y += 5;
+            doc.text("Mãe: " + (f.mae || 'N/A') + " | Pai: " + (f.pai || 'N/A'), 15, y);
+            y += 5;
+            doc.text("Endereço: " + (f.endereco || 'N/A') + " - CEP: " + (f.cep || 'N/A'), 15, y);
+            y += 5;
+            doc.text("Tel: " + (f.telefone || 'N/A') + " | E-mail: " + (f.email || 'N/A'), 15, y);
+
+            y += 10;
+            doc.setFont("helvetica", "bold");
+            doc.text("2. DOCUMENTOS OBRIGATÓRIOS", 15, y);
+            doc.setFont("helvetica", "normal");
+            y += 6;
+            doc.text("CPF: " + (f.cpf || 'N/A') + " | RG: " + (f.rg || 'N/A') + " | PIS/PASEP: " + (f.pis || 'N/A'), 15, y);
+            y += 5;
+            doc.text("CTPS: " + (f.ctps || 'N/A') + " | Título Eleitor: " + (f.titulo || 'N/A'), 15, y);
+            y += 5;
+            doc.text("Reservista: " + (f.reservista || 'N/A') + " | Certidão Civil: " + (f.certidao || 'N/A'), 15, y);
+
+            y += 10;
+            doc.setFont("helvetica", "bold");
+            doc.text("3. INFORMAÇÕES CONTRATUAIS E DE TRABALHO", 15, y);
+            doc.setFont("helvetica", "normal");
+            y += 6;
+            doc.text("Salário: R$ " + (f.salario ? parseFloat(f.salario).toFixed(2) : '0.00') + " | Pagamento: " + (f.pagamento || 'N/A'), 15, y);
+            y += 5;
+            doc.text("Local: " + (f.local || 'N/A'), 15, y);
+            y += 5;
+            doc.text("Jornada: " + (f.jornada || 'N/A'), 15, y);
+
+            y += 10;
+            doc.setFont("helvetica", "bold");
+            doc.text("4. BENEFÍCIOS E OUTROS DADOS", 15, y);
+            doc.setFont("helvetica", "normal");
+            y += 6;
+            doc.text("Banco: " + (f.banco || 'N/A'), 15, y);
+            y += 5;
+            doc.text("Dependentes: " + (f.dependentes || 'NENHUM'), 15, y);
+            y += 5;
+            doc.text("Exame ASO: " + (f.aso || 'N/A'), 15, y);
+
+            doc.save("Ficha_Funcionario_" + f.nome.replace(/\s+/g, '_') + ".pdf");
+            showToast("Ficha do funcionário em PDF exportada!", "success");
+        }
+
+        // On window startup
+        window.onload = function() {
+            updateDashboard();
+        };
+    </script>
+</body>
+</html>
+Sistema_Web_Gestao_Cis_Curumim_Sem_Recursos_Ambiente.html
+HTML
