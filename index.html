@@ -203,12 +203,12 @@
 
                         <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex justify-between items-center">
                             <div>
-                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Menores de Idade</p>
-                                <h3 id="dash-menores-count" class="text-2xl font-black text-slate-900 mt-1">0</h3>
-                                <span class="text-[10px] text-slate-400 font-medium">Acompanhamento de responsáveis</span>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Funcionários Cadastrados</p>
+                                <h3 id="dash-funcionarios-count" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                                <span class="text-[10px] text-slate-400 font-medium">Profissionais cadastrados</span>
                             </div>
                             <div class="w-12 h-12 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center text-xl shadow-inner">
-                                <i class="fa-solid fa-children"></i>
+                                <i class="fa-solid fa-id-card"></i>
                             </div>
                         </div>
 
@@ -249,7 +249,7 @@
                             </div>
                             <div class="flex gap-2 w-full sm:w-auto">
                                 <input type="text" id="search-func" oninput="renderFuncionariosTable()" placeholder="Buscar por nome ou CPF..." class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-900">
-                                <button onclick="openModal('modal-funcionario')" class="px-4 py-2 bg-blue-950 hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-md shadow-blue-600/20">
+                                <button onclick="prepareNewFuncionario()" class="px-4 py-2 bg-blue-950 hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-md shadow-blue-600/20">
                                     + Novo Cadastramento
                                 </button>
                             </div>
@@ -281,7 +281,7 @@
                             </div>
                             <div class="flex gap-2 w-full sm:w-auto">
                                 <input type="text" id="search-alunos" oninput="renderAlunosTable()" placeholder="Buscar aluno..." class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-900">
-                                <button onclick="openModal('modal-aluno'); switchAlunoTab(1)" class="px-4 py-2 bg-blue-950 hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-md shadow-blue-600/20">
+                                <button onclick="prepareNewAluno()" class="px-4 py-2 bg-blue-950 hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-md shadow-blue-600/20">
                                     + Novo Aluno
                                 </button>
                             </div>
@@ -312,7 +312,7 @@
                                 <p class="text-xs text-slate-400 font-medium">Programação de oficinas formativas e ocupacionais</p>
                             </div>
                             <div class="flex gap-2 w-full sm:w-auto">
-                                <button onclick="openModal('modal-oficina')" class="px-4 py-2 bg-blue-950 hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-md shadow-blue-600/20">
+                                <button onclick="prepareNewOficina()" class="px-4 py-2 bg-blue-950 hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-md shadow-blue-600/20">
                                     + Nova Oficina
                                 </button>
                             </div>
@@ -344,7 +344,7 @@
             <div class="flex justify-between items-center border-b border-slate-100 pb-4 flex-shrink-0">
                 <div>
                     <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
-                        <i class="fa-solid fa-id-card text-blue-900"></i> Cadastrar Novo Funcionário
+                        <i class="fa-solid fa-id-card text-blue-900"></i> <span id="titulo-modal-funcionario">Cadastrar Novo Funcionário</span>
                     </h3>
                     <p class="text-xs text-slate-400">Preencha todos os campos obrigatórios divididos por categoria</p>
                 </div>
@@ -451,7 +451,17 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Cargo / Função *</label>
-                            <input type="text" id="m-func-cargo" required placeholder="Ex: Educador Social TI" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                            <select id="m-func-cargo" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                                <option value="">Selecione uma função...</option>
+                                <option value="Professor">Professor</option>
+                                <option value="Assistente Social">Assistente Social</option>
+                                <option value="Monitor">Monitor</option>
+                                <option value="Psicólogo">Psicólogo</option>
+                                <option value="Serviços Gerais">Serviços Gerais</option>
+                                <option value="Cozinheiro">Cozinheiro</option>
+                                <option value="Administração">Administração</option>
+                                <option value="Responsável Legal (Presidente)">Responsável Legal (Presidente)</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Regime Contratual *</label>
@@ -505,15 +515,16 @@
                             <input type="text" id="m-func-dependentes" placeholder="Ex: 1 filho (CPF: 000.000.000-00)" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Exame Médico Admissional (ASO) *</label>
-                            <input type="text" id="m-func-aso" required placeholder="Ex: Apto - ASO realizado em 10/08/2026" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Anexar exame médico admissional (ASO) (PDF, JPG ou PNG)</label>
+                            <input type="file" id="m-func-aso-arquivo" accept=".pdf,.jpg,.jpeg,.png" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-900 focus:outline-none">
+                            <p id="m-func-aso-atual" class="text-[10px] text-slate-500 mt-1"></p>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 flex-shrink-0">
                     <button type="button" onclick="closeModal('modal-funcionario')" class="px-5 py-2.5 bg-slate-100 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 bg-blue-950 text-white rounded-xl text-xs font-bold hover:bg-blue-900 shadow-lg shadow-blue-600/30 transition">Salvar Cadastro Completo</button>
+                    <button id="btn-salvar-funcionario" type="submit" class="px-6 py-2.5 bg-blue-950 text-white rounded-xl text-xs font-bold hover:bg-blue-900 shadow-lg shadow-blue-600/30 transition">Salvar Cadastro Completo</button>
                 </div>
             </form>
         </div>
@@ -599,7 +610,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
                         <div class="md:col-span-2"><span class="text-[10px] font-bold text-slate-400 uppercase block">Dados Bancários & Chave Pix</span><span id="p-func-banco" class="font-medium text-slate-800">---</span></div>
                         <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Comprovante de Dependentes</span><span id="p-func-dependentes" class="font-medium text-slate-800">---</span></div>
-                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Exame Médico Admissional (ASO)</span><span id="p-func-aso" class="font-medium text-slate-800">---</span></div>
+                        <div><span class="text-[10px] font-bold text-slate-400 uppercase block">Exame Médico Admissional (ASO) — arquivo anexado</span><span id="p-func-aso-arquivo" class="font-medium text-slate-800">---</span></div>
                     </div>
                 </div>
             </div>
@@ -614,7 +625,7 @@
     <div id="modal-aluno" class="fixed inset-0 bg-blue-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
         <div class="bg-white max-w-5xl w-full rounded-3xl p-6 shadow-2xl space-y-4 my-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-900 text-base">Matricular Novo Aluno</h3>
+                <h3 id="titulo-modal-aluno" class="font-bold text-slate-900 text-base">Matricular Novo Aluno</h3>
                 <button onclick="closeModal('modal-aluno')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="saveAluno(event)" class="space-y-3 text-xs">
@@ -648,15 +659,9 @@
                     <label class="block font-bold text-slate-500 mb-1">Nome Completo do Aluno *</label>
                     <input type="text" id="m-alu-nome" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-500 mb-1">Idade *</label>
-                        <input type="number" id="m-alu-idade" required min="1" max="21" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-500 mb-1">Data de Nascimento</label>
-                        <input type="date" id="m-alu-nascimento" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
-                    </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Data de Nascimento *</label>
+                    <input type="date" id="m-alu-nascimento" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -820,7 +825,7 @@
 
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeModal('modal-aluno')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-semibold">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 bg-blue-950 text-white rounded-xl font-bold hover:bg-blue-900">Efetuar Matrícula</button>
+                    <button id="btn-salvar-aluno" type="submit" class="px-5 py-2 bg-blue-950 text-white rounded-xl font-bold hover:bg-blue-900">Efetuar Matrícula</button>
                 </div>
 
             </form>
@@ -855,7 +860,7 @@
     <div id="modal-oficina" class="fixed inset-0 bg-blue-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-900 text-base">Cadastrar Nova Oficina</h3>
+                <h3 id="titulo-modal-oficina" class="font-bold text-slate-900 text-base">Cadastrar Nova Oficina</h3>
                 <button onclick="closeModal('modal-oficina')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="saveOficina(event)" class="space-y-3 text-xs">
@@ -885,7 +890,7 @@
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeModal('modal-oficina')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-semibold">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 bg-blue-950 text-white rounded-xl font-bold hover:bg-blue-900">Salvar Oficina</button>
+                    <button id="btn-salvar-oficina" type="submit" class="px-5 py-2 bg-blue-950 text-white rounded-xl font-bold hover:bg-blue-900">Salvar Oficina</button>
                 </div>
             </form>
         </div>
@@ -928,7 +933,7 @@
                     titulo: "1234 5678 9012 - Z: 012 S: 034",
                     reservista: "12.345678.9",
                     certidao: "Casamento Livro A-12 Fls 45",
-                    cargo: "Educador Social TI", 
+                    cargo: "Professor", 
                     contrato: "CLT",
                     admissao: "2024-02-01",
                     salario: 3500.00,
@@ -936,8 +941,14 @@
                     local: "Presencial - Unidade Sede",
                     jornada: "08:00 às 17:00 (Intervalo: 12:00 às 13:00)",
                     banco: "Banco do Brasil - Ag: 1234-5 | C/C: 56789-0 | Pix: carlos@cis.org",
-                    dependentes: "1 Filho (CPF: 987.654.321-00)",
-                    aso: "Apto - Realizado em 25/01/2024"
+                    dependentes: "1 Filho (CPF: 987.654.321-00)"
+                },
+                { 
+                    id: 3,
+                    nome: "Fernanda Lima",
+                    cargo: "Professor",
+                    contrato: "Não informado",
+                    asoArquivo: ""
                 },
                 { 
                     id: 2, 
@@ -965,8 +976,7 @@
                     local: "Presencial - Sede",
                     jornada: "08:00 às 17:00 (Intervalo: 12:00 às 13:00)",
                     banco: "Itaú - Ag: 4321 | C/S: 98765-1",
-                    dependentes: "Nenhum",
-                    aso: "Apto - Realizado em 10/08/2023"
+                    dependentes: "Nenhum"
                 }
             ],
             alunos: [
@@ -981,6 +991,25 @@
         };
 
         var deleteTarget = null;
+
+        function calcularIdade(dataNascimento) {
+            if (!dataNascimento) return null;
+            var nascimento = new Date(dataNascimento + 'T00:00:00');
+            var hoje = new Date();
+            if (isNaN(nascimento.getTime()) || nascimento > hoje) return null;
+            var idade = hoje.getFullYear() - nascimento.getFullYear();
+            var diferencaMes = hoje.getMonth() - nascimento.getMonth();
+            if (diferencaMes < 0 || (diferencaMes === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+            }
+            return idade;
+        }
+
+        function obterIdadeAluno(aluno) {
+            var idadeCalculada = calcularIdade(aluno.nascimento);
+            if (idadeCalculada !== null) return idadeCalculada;
+            return aluno.idade !== undefined && aluno.idade !== null && aluno.idade !== '' ? Number(aluno.idade) : null;
+        }
 
         function showToast(message, type = "success") {
             var container = document.getElementById('toast-container');
@@ -1037,6 +1066,31 @@
         function closeModal(id) {
             var modal = document.getElementById(id);
             if (modal) modal.classList.add('hidden');
+            if (id === 'modal-funcionario') {
+                editingFuncionarioId = null;
+                document.getElementById('titulo-modal-funcionario').textContent = 'Cadastrar Novo Funcionário';
+                document.getElementById('btn-salvar-funcionario').textContent = 'Salvar Cadastro Completo';
+                document.getElementById('m-func-aso-arquivo').required = true;
+                document.getElementById('m-func-aso-atual').textContent = '';
+                var funcionarioForm = document.querySelector('#modal-funcionario form');
+                if (funcionarioForm) funcionarioForm.reset();
+            }
+            if (id === 'modal-aluno') {
+                editingAlunoId = null;
+                document.getElementById('titulo-modal-aluno').textContent = 'Matricular Novo Aluno';
+                document.getElementById('btn-salvar-aluno').textContent = 'Efetuar Matrícula';
+                document.getElementById('m-alu-nascimento').required = true;
+                var alunoForm = document.querySelector('#modal-aluno form');
+                if (alunoForm) alunoForm.reset();
+                switchAlunoTab(1);
+            }
+            if (id === 'modal-oficina') {
+                editingOficinaId = null;
+                document.getElementById('titulo-modal-oficina').textContent = 'Cadastrar Nova Oficina';
+                document.getElementById('btn-salvar-oficina').textContent = 'Salvar Oficina';
+                var oficinaForm = document.querySelector('#modal-oficina form');
+                if (oficinaForm) oficinaForm.reset();
+            }
         }
 
         function toggleMobileMenu() {
@@ -1048,6 +1102,7 @@
             var panels = document.querySelectorAll('.view-panel');
             for (var i = 0; i < panels.length; i++) {
                 panels[i].classList.add('hidden');
+                panels[i].style.display = 'none';
             }
 
             var navBtns = document.querySelectorAll('.nav-btn');
@@ -1056,7 +1111,10 @@
             }
 
             var targetPanel = document.getElementById('view-' + tabId);
-            if (targetPanel) targetPanel.classList.remove('hidden');
+            if (targetPanel) {
+                targetPanel.classList.remove('hidden');
+                targetPanel.style.display = '';
+            }
 
             var activeNav = document.getElementById('nav-' + tabId);
             if (activeNav) activeNav.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-white bg-blue-950 shadow-sm';
@@ -1077,17 +1135,172 @@
         }
 
         function handleLogin(e) {
-            e.preventDefault();
-            document.getElementById('login-screen').classList.add('hidden');
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+            var loginScreen = document.getElementById('login-screen');
+            if (loginScreen) {
+                loginScreen.classList.add('hidden');
+                loginScreen.style.display = 'none';
+            }
+
+            try {
+                switchTab('dashboard');
+            } catch (erro) {
+                var panels = document.querySelectorAll('.view-panel');
+                for (var i = 0; i < panels.length; i++) {
+                    panels[i].classList.add('hidden');
+                    panels[i].style.display = 'none';
+                }
+                var dashboard = document.getElementById('view-dashboard');
+                if (dashboard) {
+                    dashboard.classList.remove('hidden');
+                    dashboard.style.display = 'block';
+                }
+                var pageTitle = document.getElementById('page-title');
+                if (pageTitle) pageTitle.innerText = 'DASHBOARD';
+                console.error('Não foi possível atualizar algum dado do Dashboard:', erro);
+            }
+
             showToast("Sessão iniciada com sucesso! Bem-vindo.", "success");
-            switchTab('dashboard');
         }
 
         function handleLogout() {
-            document.getElementById('login-screen').classList.remove('hidden');
+            var loginScreen = document.getElementById('login-screen');
+            if (loginScreen) {
+                loginScreen.classList.remove('hidden');
+                loginScreen.style.display = '';
+            }
             showToast("Sessão encerrada com segurança.", "info");
         }
 
+
+        var editingFuncionarioId = null;
+        var editingAlunoId = null;
+        var editingOficinaId = null;
+
+        function setFormValues(mapping, record) {
+            for (var i = 0; i < mapping.length; i++) {
+                var field = document.getElementById(mapping[i][0]);
+                if (field && field.type !== 'file') {
+                    var value = record[mapping[i][1]];
+                    field.value = value === undefined || value === null ? '' : value;
+                }
+            }
+        }
+
+        function prepareNewFuncionario() {
+            editingFuncionarioId = null;
+            var form = document.querySelector('#modal-funcionario form');
+            if (form) form.reset();
+            document.getElementById('titulo-modal-funcionario').textContent = 'Cadastrar Novo Funcionário';
+            document.getElementById('btn-salvar-funcionario').textContent = 'Salvar Cadastro Completo';
+            document.getElementById('m-func-aso-arquivo').required = true;
+            document.getElementById('m-func-aso-atual').textContent = '';
+            openModal('modal-funcionario');
+        }
+
+        function prepareNewAluno() {
+            editingAlunoId = null;
+            var form = document.querySelector('#modal-aluno form');
+            if (form) form.reset();
+            document.getElementById('titulo-modal-aluno').textContent = 'Matricular Novo Aluno';
+            document.getElementById('btn-salvar-aluno').textContent = 'Efetuar Matrícula';
+            document.getElementById('m-alu-nascimento').required = true;
+            openModal('modal-aluno');
+            switchAlunoTab(1);
+        }
+
+        function prepareNewOficina() {
+            editingOficinaId = null;
+            var form = document.querySelector('#modal-oficina form');
+            if (form) form.reset();
+            document.getElementById('titulo-modal-oficina').textContent = 'Cadastrar Nova Oficina';
+            document.getElementById('btn-salvar-oficina').textContent = 'Salvar Oficina';
+            openModal('modal-oficina');
+        }
+
+        function openEditFuncionario(id) {
+            var record = db.funcionarios.find(function(item) { return item.id === id; });
+            if (!record) return;
+            editingFuncionarioId = id;
+            var form = document.querySelector('#modal-funcionario form');
+            if (form) form.reset();
+            setFormValues([
+                ['m-func-nome','nome'], ['m-func-nascimento','nascimento'], ['m-func-estado-civil','estadoCivil'],
+                ['m-func-mae','mae'], ['m-func-pai','pai'], ['m-func-endereco','endereco'], ['m-func-cep','cep'],
+                ['m-func-telefone','telefone'], ['m-func-email','email'], ['m-func-cpf','cpf'], ['m-func-rg','rg'],
+                ['m-func-pis','pis'], ['m-func-ctps','ctps'], ['m-func-titulo','titulo'], ['m-func-reservista','reservista'],
+                ['m-func-certidao','certidao'], ['m-func-cargo','cargo'], ['m-func-contrato','contrato'],
+                ['m-func-admissao','admissao'], ['m-func-salario','salario'], ['m-func-pagamento','pagamento'],
+                ['m-func-local','local'], ['m-func-jornada','jornada'], ['m-func-banco','banco'], ['m-func-dependentes','dependentes']
+            ], record);
+            var aso = document.getElementById('m-func-aso-arquivo');
+            aso.required = false;
+            document.getElementById('m-func-aso-atual').textContent = record.asoArquivo ? 'Arquivo atual: ' + record.asoArquivo + ' (selecione outro somente se desejar substituí-lo).' : 'Nenhum arquivo registrado. Selecione o exame médico para anexá-lo.';
+            document.getElementById('titulo-modal-funcionario').textContent = 'Editar Funcionário';
+            document.getElementById('btn-salvar-funcionario').textContent = 'Salvar Alterações';
+            openModal('modal-funcionario');
+        }
+
+        function openEditAluno(id) {
+            var record = db.alunos.find(function(item) { return item.id === id; });
+            if (!record) return;
+            editingAlunoId = id;
+            var form = document.querySelector('#modal-aluno form');
+            if (form) form.reset();
+            openModal('modal-aluno');
+            document.getElementById('m-alu-nascimento').required = !!record.nascimento;
+            setFormValues([
+                ['m-alu-nome','nome'], ['m-alu-nascimento','nascimento'], ['m-alu-genero','genero'], ['m-alu-nacionalidade','nacionalidade'],
+                ['m-alu-naturalidade','naturalidade'], ['m-alu-rg','rg'], ['m-alu-cpf','cpf'], ['m-alu-certidao','certidao'],
+                ['m-alu-endereco','endereco'], ['m-alu-telefone-fixo','telefoneFixo'], ['m-alu-celular','celular'], ['m-alu-email','email'],
+                ['m-alu-resp','responsavel'], ['m-alu-responsaveis','responsaveis'], ['m-alu-resp-rg','responsavelRg'],
+                ['m-alu-resp-cpf','responsavelCpf'], ['m-alu-resp-profissao','responsavelProfissao'], ['m-alu-emergencia','emergencia'],
+                ['m-alu-email-responsavel','emailResponsavel'], ['m-alu-escolaridade','escolaridade'], ['m-alu-historico','historico'],
+                ['m-alu-alergias','alergias'], ['m-alu-tipo-sangue','tipoSangue'], ['m-alu-fator-rh','fatorRh'],
+                ['m-alu-restricoes','restricoes'], ['m-alu-oficina','oficina']
+            ], record);
+            document.getElementById('titulo-modal-aluno').textContent = 'Editar Cadastro do Aluno';
+            document.getElementById('btn-salvar-aluno').textContent = 'Salvar Alterações';
+            switchAlunoTab(1);
+        }
+
+        function openEditOficina(id) {
+            var record = db.oficinas.find(function(item) { return item.id === id; });
+            if (!record) return;
+            editingOficinaId = id;
+            var form = document.querySelector('#modal-oficina form');
+            if (form) form.reset();
+            openModal('modal-oficina');
+            var selectEducador = document.getElementById('m-ofi-edu');
+            var educadorJaListada = false;
+            for (var e = 0; e < selectEducador.options.length; e++) {
+                if (selectEducador.options[e].value === record.educador) {
+                    educadorJaListada = true;
+                    break;
+                }
+            }
+            if (record.educador && !educadorJaListada) {
+                var educadorAtual = document.createElement('option');
+                educadorAtual.value = record.educador;
+                educadorAtual.textContent = record.educador + ' (atual)';
+                selectEducador.appendChild(educadorAtual);
+            }
+            var dias = record.dias || '';
+            var horario = record.horario || '';
+            if (!dias && horario) {
+                var horarioComDias = horario.match(/^(.*?)\s+(\d{1,2}:\d{2})$/);
+                if (horarioComDias) {
+                    dias = horarioComDias[1];
+                    horario = horarioComDias[2];
+                }
+            }
+            setFormValues([
+                ['m-ofi-nome','nome'], ['m-ofi-edu','educador'], ['m-ofi-dias','dias'], ['m-ofi-horario','horario'], ['m-ofi-vagas','vagas']
+            ], Object.assign({}, record, { dias: dias, horario: horario }));
+            document.getElementById('titulo-modal-oficina').textContent = 'Editar Oficina';
+            document.getElementById('btn-salvar-oficina').textContent = 'Salvar Alterações';
+        }
 
         function renderFuncionariosTable() {
             var tbody = document.getElementById('table-func-body');
@@ -1116,6 +1329,7 @@
                     '<td class="py-3 px-4"><span class="px-2.5 py-0.5 bg-blue-50 text-blue-900 font-bold rounded-full text-[10px] border border-blue-300">' + f.contrato + '</span></td>' +
                     '<td class="py-3 px-4 text-right flex justify-end gap-2">' +
                         '<button onclick="openPerfilFuncionario(' + f.id + ')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold border border-slate-200 transition flex items-center gap-1"><i class="fa-solid fa-eye text-blue-900"></i> Ver Perfil</button>' +
+                        '<button onclick="openEditFuncionario(' + f.id + ')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-100 transition flex items-center gap-1"><i class="fa-solid fa-pen"></i> Editar</button>' +
                         '<button onclick="confirmDelete(\'funcionarios\', ' + f.id + ')" class="p-1 text-slate-400 hover:text-red-600 transition"><i class="fa-solid fa-trash-can"></i></button>' +
                     '</td>' +
                 '</tr>';
@@ -1137,13 +1351,15 @@
             var html = '';
             for (var i = 0; i < filtered.length; i++) {
                 var al = filtered[i];
+                var idadeAluno = obterIdadeAluno(al);
                 html += '<tr class="hover:bg-slate-50 transition">' +
                     '<td class="py-3 px-4 font-bold text-slate-900">' + al.nome + '</td>' +
-                    '<td class="py-3 px-4 font-medium text-slate-700">' + al.idade + ' anos</td>' +
+                    '<td class="py-3 px-4 font-medium text-slate-700">' + (idadeAluno !== null && !isNaN(idadeAluno) ? idadeAluno + ' anos' : 'Não informada') + '</td>' +
                     '<td class="py-3 px-4 font-medium text-slate-600">' + al.responsavel + '</td>' +
                     '<td class="py-3 px-4"><span class="px-2.5 py-0.5 bg-purple-50 text-purple-700 font-bold rounded-full text-[10px]">' + al.oficina + '</span></td>' +
                     '<td class="py-3 px-4 text-right">' +
                         '<button onclick="showAlunoProfile(' + al.id + ')" class="p-1 text-slate-400 hover:text-blue-900 transition" title="Visualizar dados"><i class="fa-solid fa-eye"></i></button>' +
+                        '<button onclick="openEditAluno(' + al.id + ')" class="p-1 text-slate-400 hover:text-blue-900 transition" title="Editar aluno"><i class="fa-solid fa-pen"></i></button>' +
                         '<button onclick="confirmDelete(\'alunos\', ' + al.id + ')" class="p-1 text-slate-400 hover:text-red-600 transition" title="Excluir aluno"><i class="fa-solid fa-trash-can"></i></button>' +
                     '</td>' +
                 '</tr>';
@@ -1164,9 +1380,10 @@
                 html += '<tr class="hover:bg-slate-50 transition">' +
                     '<td class="py-3 px-4 font-bold text-slate-900">' + o.nome + '</td>' +
                     '<td class="py-3 px-4 font-medium text-slate-700">' + o.educador + '</td>' +
-                    '<td class="py-3 px-4 font-medium text-slate-600">' + o.horario + '</td>' +
+                    '<td class="py-3 px-4 font-medium text-slate-600">' + (o.dias ? o.dias + ' ' : '') + o.horario + '</td>' +
                     '<td class="py-3 px-4 text-center font-bold text-blue-900">' + o.vagas + '</td>' +
                     '<td class="py-3 px-4 text-right">' +
+                        '<button onclick="openEditOficina(' + o.id + ')" class="p-1 text-slate-400 hover:text-blue-900 transition" title="Editar oficina"><i class="fa-solid fa-pen"></i></button>' +
                         '<button onclick="confirmDelete(\'oficinas\', ' + o.id + ')" class="p-1 text-slate-400 hover:text-red-600 transition"><i class="fa-solid fa-trash-can"></i></button>' +
                     '</td>' +
                 '</tr>';
@@ -1179,8 +1396,10 @@
 
         function saveFuncionario(e) {
             e.preventDefault();
+            var existing = editingFuncionarioId !== null ? db.funcionarios.find(function(item) { return item.id === editingFuncionarioId; }) : null;
+            var arquivoSelecionado = document.getElementById('m-func-aso-arquivo').files[0];
             var newFunc = {
-                id: Date.now(),
+                id: existing ? existing.id : Date.now(),
                 nome: document.getElementById('m-func-nome').value,
                 nascimento: document.getElementById('m-func-nascimento').value,
                 estadoCivil: document.getElementById('m-func-estado-civil').value,
@@ -1206,17 +1425,23 @@
                 jornada: document.getElementById('m-func-jornada').value,
                 banco: document.getElementById('m-func-banco').value,
                 dependentes: document.getElementById('m-func-dependentes').value,
-                aso: document.getElementById('m-func-aso').value
+                asoArquivo: arquivoSelecionado ? arquivoSelecionado.name : (existing ? (existing.asoArquivo || '') : '')
             };
-
-            db.funcionarios.unshift(newFunc);
+            var editando = !!existing;
+            if (existing) {
+                var funcIndex = db.funcionarios.findIndex(function(item) { return item.id === existing.id; });
+                db.funcionarios[funcIndex] = Object.assign({}, existing, newFunc);
+            } else {
+                db.funcionarios.unshift(newFunc);
+            }
+            editingFuncionarioId = null;
             e.target.reset();
             closeModal('modal-funcionario');
             renderFuncionariosTable();
+            renderOficinasTable();
             updateDashboard();
-            showToast("Cadastro de funcionário realizado com sucesso!", "success");
+            showToast(editando ? 'Cadastro do funcionário atualizado com sucesso!' : 'Cadastro de funcionário realizado com sucesso!', 'success');
         }
-
 
         function switchAlunoTab(tabNumber) {
             var panels = document.querySelectorAll('.aluno-tab-panel');
@@ -1277,7 +1502,7 @@
             var html = '';
             html += secao('Dados Pessoais', 'fa-user',
                 campo('Nome Completo', aluno.nome) +
-                campo('Idade', aluno.idade ? aluno.idade + ' anos' : '') +
+                campo('Idade', obterIdadeAluno(aluno) !== null && !isNaN(obterIdadeAluno(aluno)) ? obterIdadeAluno(aluno) + ' anos' : '') +
                 campo('Data de Nascimento', aluno.nascimento) +
                 campo('Gênero', aluno.genero) +
                 campo('RG', aluno.rg) +
@@ -1333,11 +1558,14 @@
 
         function saveAluno(e) {
             e.preventDefault();
+            var nascimento = document.getElementById('m-alu-nascimento').value;
+            var existing = editingAlunoId !== null ? db.alunos.find(function(item) { return item.id === editingAlunoId; }) : null;
+            var arquivoCertificado = document.getElementById('m-alu-certificado').files[0];
             var newAlu = {
-                id: Date.now(),
+                id: existing ? existing.id : Date.now(),
                 nome: document.getElementById('m-alu-nome').value,
-                idade: parseInt(document.getElementById('m-alu-idade').value) || 0,
-                nascimento: document.getElementById('m-alu-nascimento').value,
+                idade: nascimento ? calcularIdade(nascimento) : (existing ? existing.idade : null),
+                nascimento: nascimento,
                 genero: document.getElementById('m-alu-genero').value,
                 rg: document.getElementById('m-alu-rg').value,
                 cpf: document.getElementById('m-alu-cpf').value,
@@ -1357,36 +1585,52 @@
                 emailResponsavel: document.getElementById('m-alu-email-responsavel').value,
                 escolaridade: document.getElementById('m-alu-escolaridade').value,
                 historico: document.getElementById('m-alu-historico').value,
-                certificado: document.getElementById('m-alu-certificado').files[0] ? document.getElementById('m-alu-certificado').files[0].name : '',
+                certificado: arquivoCertificado ? arquivoCertificado.name : (existing ? (existing.certificado || '') : ''),
                 alergias: document.getElementById('m-alu-alergias').value,
                 tipoSangue: document.getElementById('m-alu-tipo-sangue').value,
                 fatorRh: document.getElementById('m-alu-fator-rh').value,
                 restricoes: document.getElementById('m-alu-restricoes').value,
                 oficina: document.getElementById('m-alu-oficina').value
             };
-            db.alunos.unshift(newAlu);
+            var editando = !!existing;
+            if (existing) {
+                var alunoIndex = db.alunos.findIndex(function(item) { return item.id === existing.id; });
+                db.alunos[alunoIndex] = Object.assign({}, existing, newAlu);
+            } else {
+                db.alunos.unshift(newAlu);
+            }
+            editingAlunoId = null;
             e.target.reset();
             closeModal('modal-aluno');
             renderAlunosTable();
             updateDashboard();
-            showToast("Aluno matriculado com sucesso!", "success");
+            showToast(editando ? 'Cadastro do aluno atualizado com sucesso!' : 'Aluno matriculado com sucesso!', 'success');
         }
 
         function saveOficina(e) {
             e.preventDefault();
+            var existing = editingOficinaId !== null ? db.oficinas.find(function(item) { return item.id === editingOficinaId; }) : null;
             var newOfi = {
-                id: Date.now(),
+                id: existing ? existing.id : Date.now(),
                 nome: document.getElementById('m-ofi-nome').value,
                 educador: document.getElementById('m-ofi-edu').value,
                 dias: document.getElementById('m-ofi-dias').value,
                 horario: document.getElementById('m-ofi-horario').value,
                 vagas: parseInt(document.getElementById('m-ofi-vagas').value) || 0
             };
-            db.oficinas.unshift(newOfi);
+            var editando = !!existing;
+            if (existing) {
+                var oficinaIndex = db.oficinas.findIndex(function(item) { return item.id === existing.id; });
+                db.oficinas[oficinaIndex] = Object.assign({}, existing, newOfi);
+            } else {
+                db.oficinas.unshift(newOfi);
+            }
+            editingOficinaId = null;
             e.target.reset();
             closeModal('modal-oficina');
             renderOficinasTable();
-            showToast("Oficina cadastrada com sucesso!", "success");
+            updateDashboard();
+            showToast(editando ? 'Cadastro da oficina atualizado com sucesso!' : 'Oficina cadastrada com sucesso!', 'success');
         }
 
 
@@ -1426,7 +1670,7 @@
 
             document.getElementById('p-func-banco').innerText = f.banco || '---';
             document.getElementById('p-func-dependentes').innerText = f.dependentes || 'Nenhum informado';
-            document.getElementById('p-func-aso').innerText = f.aso || '---';
+            document.getElementById('p-func-aso-arquivo').innerText = f.asoArquivo || 'Nenhum arquivo anexado';
 
             document.getElementById('p-func-btn-pdf').onclick = function() {
                 gerarFichaFuncionarioPDF(f.id);
@@ -1457,9 +1701,7 @@
 
         function updateDashboard() {
             var totalAlunos = db.alunos.length;
-            var menores = db.alunos.filter(function(item) {
-                return Number(item.idade) < 18;
-            }).length;
+            var totalFuncionarios = db.funcionarios.length;
 
             var oficinas = {};
             db.alunos.forEach(function(item) {
@@ -1474,7 +1716,7 @@
             }).length;
 
             document.getElementById('dash-alunos-count').innerText = totalAlunos;
-            document.getElementById('dash-menores-count').innerText = menores;
+            document.getElementById('dash-funcionarios-count').innerText = totalFuncionarios;
             document.getElementById('dash-oficinas-count').innerText = totalOficinas;
             document.getElementById('dash-responsaveis-count').innerText = responsaveis;
 
@@ -1482,30 +1724,38 @@
                 return nome + ': ' + oficinas[nome];
             });
 
-            document.getElementById('dash-oficinas-resumo').innerText =
-                resumoOficinas.length ? resumoOficinas.join(' | ') : 'Nenhum aluno vinculado.';
+            var resumoOficinasElemento = document.getElementById('dash-oficinas-resumo');
+            if (resumoOficinasElemento) {
+                resumoOficinasElemento.innerText = resumoOficinas.length ? resumoOficinas.join(' | ') : 'Nenhum aluno vinculado.';
+            }
 
-            document.getElementById('dash-responsaveis-resumo').innerText =
-                responsaveis + ' de ' + totalAlunos + ' alunos';
+            var resumoResponsaveisElemento = document.getElementById('dash-responsaveis-resumo');
+            if (resumoResponsaveisElemento) {
+                resumoResponsaveisElemento.innerText = responsaveis + ' de ' + totalAlunos + ' alunos';
+            }
 
-            if (totalAlunos === 0) {
-                document.getElementById('dash-faixa-etaria').innerText = 'Nenhum aluno cadastrado.';
-            } else {
-                var criancas = db.alunos.filter(function(item) {
-                    return Number(item.idade) <= 12;
-                }).length;
-                var adolescentes = db.alunos.filter(function(item) {
-                    return Number(item.idade) >= 13 && Number(item.idade) < 18;
-                }).length;
-                var maiores = db.alunos.filter(function(item) {
-                    return Number(item.idade) >= 18;
-                }).length;
+            var faixaEtariaElemento = document.getElementById('dash-faixa-etaria');
+            if (faixaEtariaElemento) {
+                if (totalAlunos === 0) {
+                    faixaEtariaElemento.innerText = 'Nenhum aluno cadastrado.';
+                } else {
+                    var criancas = db.alunos.filter(function(item) {
+                        var idade = obterIdadeAluno(item);
+                        return idade !== null && !isNaN(idade) && idade <= 12;
+                    }).length;
+                    var adolescentes = db.alunos.filter(function(item) {
+                        var idade = obterIdadeAluno(item);
+                        return idade !== null && !isNaN(idade) && idade >= 13 && idade < 18;
+                    }).length;
+                    var maiores = db.alunos.filter(function(item) {
+                        var idade = obterIdadeAluno(item);
+                        return idade !== null && !isNaN(idade) && idade >= 18;
+                    }).length;
 
-                document.getElementById('dash-faixa-etaria').innerText =
-                    'Até 12: ' + criancas + ' | 13–17: ' + adolescentes + ' | 18+: ' + maiores;
+                    faixaEtariaElemento.innerText = 'Até 12: ' + criancas + ' | 13–17: ' + adolescentes + ' | 18+: ' + maiores;
+                }
             }
         }
-
 
 
 
@@ -1575,7 +1825,7 @@
             y += 5;
             doc.text("Dependentes: " + (f.dependentes || 'NENHUM'), 15, y);
             y += 5;
-            doc.text("Exame ASO: " + (f.aso || 'N/A'), 15, y);
+            doc.text("Arquivo do exame ASO: " + (f.asoArquivo || 'N/A'), 15, y);
 
             doc.save("Ficha_Funcionario_" + f.nome.replace(/\s+/g, '_') + ".pdf");
             showToast("Ficha do funcionário em PDF exportada!", "success");
@@ -1600,7 +1850,8 @@
             doc.text("ALUNO: " + (aluno.nome || 'NÃO INFORMADO').toUpperCase(), 15, 35);
             doc.setFontSize(9);
             doc.setFont("helvetica", "normal");
-            doc.text("Idade: " + (aluno.idade || 'N/A') + " | Oficina: " + (aluno.oficina || 'N/A'), 15, 42);
+            var idadeAluno = obterIdadeAluno(aluno);
+            doc.text("Idade: " + (idadeAluno !== null && !isNaN(idadeAluno) ? idadeAluno : 'N/A') + " | Oficina: " + (aluno.oficina || 'N/A'), 15, 42);
 
             var valor = function(v) { return v !== undefined && v !== null && v !== '' ? String(v) : 'N/A'; };
             var y = 52;
